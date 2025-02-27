@@ -1,13 +1,13 @@
-#include <iostream>
 #include "../include/eu_harmonic.h"
-#include <thread>
-#include <iomanip>
 #include <csignal>
+#include <iomanip>
+#include <iostream>
 #include <mutex>
+#include <thread>
 
 // 轮廓位置模式控制示例程序
 
-void printHexArray(bool isSend, const unsigned char *data, size_t length)
+void printHexArray(bool isSend, const unsigned char* data, size_t length)
 {
     if (isSend)
         std::cout << "send:";
@@ -19,19 +19,19 @@ void printHexArray(bool isSend, const unsigned char *data, size_t length)
 }
 
 std::mutex CoutMutex;
-void sendCallback(int devIndex, const harmonic_CanMsg *msg)
+
+void sendCallback(int devIndex, const harmonic_CanMsg* msg)
 {
     std::unique_lock<std::mutex> locker(CoutMutex);
     std::cout << "[0x" << std::hex << msg->cob_id << std::dec << "]";
     printHexArray(true, msg->data, msg->len);
 }
-void receiveCallback(int devIndex, const harmonic_CanMsg *msg)
+void receiveCallback(int devIndex, const harmonic_CanMsg* msg)
 {
     std::unique_lock<std::mutex> locker(CoutMutex);
     std::cout << "[0x" << std::hex << msg->cob_id << std::dec << "]";
     printHexArray(false, msg->data, msg->len);
 }
-
 
 int devIndex = 0;
 
@@ -54,16 +54,16 @@ int main()
     harmonic_setSendDataCallBack(sendCallback);
     harmonic_setReceiveDataCallBack(receiveCallback);
 
-    huint8 id = 1;
-    huint32 vel = 2000000;
-    huint32 acc = vel;
-    huint32 dec = acc;
-    bool isRelative = false;   // 是否是相对位置
-    bool isImmediately = true; // 是否立即生效
-    bool isUpdate = false;     // 是否采用更新位置模式
-    hint32 startPos = 0;
-    int step = 1000; // 轨迹点步长
-    int itpv = 10;   // 插补周期，单位ms
+    huint8  id            = 1;
+    huint32 vel           = 2000000;
+    huint32 acc           = vel;
+    huint32 dec           = acc;
+    bool    isRelative    = false; // 是否是相对位置
+    bool    isImmediately = true;  // 是否立即生效
+    bool    isUpdate      = false; // 是否采用更新位置模式
+    hint32  startPos      = 0;
+    int     step          = 1000; // 轨迹点步长
+    int     itpv          = 10;   // 插补周期，单位ms
 
     if (HARMONIC_SUCCESS != harmonic_getActualPos(devIndex, id, &startPos))
     {
@@ -72,19 +72,19 @@ int main()
         return -1;
     }
 
-    std::thread th([=]()
-                   {
-     hint32 pos = startPos;
- while (1)
-    {
-        if (HARMONIC_SUCCESS != harmonic_profilePositionControl(devIndex, id, pos, vel, acc, dec, isRelative, isImmediately, isUpdate))
+    std::thread th([=]() {
+        hint32 pos = startPos;
+        while (true)
         {
-            std::cout << "[test]test pp control failed!" << std::endl;
-            break;
+            if (HARMONIC_SUCCESS != harmonic_profilePositionControl(devIndex, id, pos, vel, acc, dec, isRelative, isImmediately, isUpdate))
+            {
+                std::cout << "[test]test pp control failed!" << std::endl;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(itpv)); //! 需根据平台选择高精度定时器以获得更好的控制效果
+            pos += step;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(itpv));//!需根据平台选择高精度定时器以获得更好的控制效果
-        pos += step;
-    } });
+    });
     th.join();
     harmonic_freeDLL(devIndex);
     return 0;

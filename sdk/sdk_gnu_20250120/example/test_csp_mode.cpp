@@ -1,13 +1,13 @@
-#include <iostream>
 #include "../include/eu_harmonic.h"
-#include <iomanip>
-#include <thread>
 #include <csignal>
+#include <iomanip>
+#include <iostream>
 #include <mutex>
+#include <thread>
 
 // 同步位置模式控制示例程序
 
-void printHexArray(bool isSend, const unsigned char *data, size_t length)
+void printHexArray(bool isSend, const unsigned char* data, size_t length)
 {
     if (isSend)
         std::cout << "send:";
@@ -19,13 +19,15 @@ void printHexArray(bool isSend, const unsigned char *data, size_t length)
 }
 
 std::mutex CoutMutex;
-void sendCallback(int devIndex, const harmonic_CanMsg *msg)
+
+void sendCallback(int devIndex, const harmonic_CanMsg* msg)
 {
     std::unique_lock<std::mutex> locker(CoutMutex);
     std::cout << "[0x" << std::hex << msg->cob_id << std::dec << "]";
     printHexArray(true, msg->data, msg->len);
 }
-void receiveCallback(int devIndex, const harmonic_CanMsg *msg)
+
+void receiveCallback(int devIndex, const harmonic_CanMsg* msg)
 {
     std::unique_lock<std::mutex> locker(CoutMutex);
     std::cout << "[0x" << std::hex << msg->cob_id << std::dec << "]";
@@ -69,12 +71,12 @@ int main()
     harmonic_setSendDataCallBack(sendCallback);
     harmonic_setReceiveDataCallBack(receiveCallback);
 
-    huint8 id = 1;
-    bool isSync = true; // 是否采用同步方式
-    huint8 type = isSync ? 0x01 : 0xFF;
-    hint32 startPos = 0; // 存放规划起始位置值
-    int itpv = 4;        // 插补周期，单位ms
-    int step = 1000;     // 轨迹点步长
+    huint8 id       = 1;
+    bool   isSync   = true; // 是否采用同步方式
+    huint8 type     = isSync ? 0x01 : 0xFF;
+    hint32 startPos = 0;    // 存放规划起始位置值
+    int    itpv     = 4;    // 插补周期，单位ms
+    int    step     = 1000; // 轨迹点步长
 
     if (HARMONIC_SUCCESS != harmonic_setOperateMode(devIndex, id, harmonic_OperateMode_CyclicSyncPosition))
     {
@@ -170,7 +172,7 @@ int main()
     }
 
     hint32 pos = startPos;
-    while (1)
+    while (true)
     {
         setPos(id, pos, isSync);
         std::cout << std::dec << pos << std::endl;
