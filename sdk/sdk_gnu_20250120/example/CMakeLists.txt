@@ -3,18 +3,22 @@ cmake_minimum_required(VERSION 3.10.0)
 project(test_eu_harmonic)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 if(NOT DEFINED EYOU_LIB_PATH)
     set(EYOU_LIB_PATH ${CMAKE_SOURCE_DIR}/../lib)
 endif()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${EYOU_LIB_PATH})
 
 function(add_custom_test test_name)
     add_executable(${test_name} ${test_name}.cpp)
+
     if(WIN32)
-        target_link_libraries(${test_name} ${EYOU_LIB_PATH}/eu_harmonic.dll)
+        target_link_libraries(${test_name} ${EYOU_LIB_PATH}/x86_windows/eu_harmonic.dll)
     elseif(UNIX)
-        target_link_libraries(${test_name} ${EYOU_LIB_PATH}/libeu_harmonic.so pthread)
+        target_link_libraries(${test_name} ${EYOU_LIB_PATH}/x86_x64_linux/libeu_harmonic.so pthread)
     endif()
+
     if(DEFINED EYOU_PRO)
         add_dependencies(${test_name} eu_harmonic)
     endif()
